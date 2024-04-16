@@ -17,7 +17,9 @@ class Kiwoom(QAxWidget):
     def _set_signal_slots(self):
         self.OnEventConnect.connect(self._login_slot)
         self.OnReceiveTrData.connect(self._on_receive_tr_data)
-
+        # 아래 둘 줄
+        self.OnReceiveMsg.connect(self._on_receive_msg)
+        self.OnReceiveChejanData.connect(self._on_chejan_slot)
 
     def _login_slot(self, err_code):
         if err_code == 0:
@@ -90,7 +92,6 @@ class Kiwoom(QAxWidget):
         self.tr_event_loop.exec_()
         return self.tr_data
 
-    # 여기부터 따라하기
     def send_order(self, rqname, screen_no, order_type, code, order_quantity,
                    order_price, order_classification, origin_order_number=""):
         order_result = self.dynamicCall(
@@ -99,4 +100,8 @@ class Kiwoom(QAxWidget):
              order_classification, origin_order_number])
 
         return order_result
+
+    def _on_receive_msg(self, screen_no,  rqname, trcode, msg):
+        print("[Kiwoom] _on_receive_msg is called {} / {} / {} / {}"
+              .format(screen_no, rqname, trcode, msg))
 
