@@ -2,6 +2,8 @@ from PyQt5.QAxContainer import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import time
+from util.const import *
+
 class Kiwoom(QAxWidget):
     def __init__(self):
         super().__init__()
@@ -10,6 +12,10 @@ class Kiwoom(QAxWidget):
         self._comm_connect()
         self.account_number = self.get_account_number()
         self.tr_event_loop = QEventLoop()
+        # 여기 아래
+        self.order = {}
+        self.balance = {}
+
 
     def _make_Kiwoom_instance(self):
         self.setControl("KHOPENAPI.KHOpenAPICtrl.1")
@@ -104,4 +110,35 @@ class Kiwoom(QAxWidget):
     def _on_receive_msg(self, screen_no,  rqname, trcode, msg):
         print("[Kiwoom] _on_receive_msg is called {} / {} / {} / {}"
               .format(screen_no, rqname, trcode, msg))
+
+    def _on_chejan_slot(self, s_gubun, n_item_cnt, s_fid_list):
+        print("[Kiwoon] _on_chejan_slot is called {} / {} / {}"
+              .format(s_gubun, n_item_cnt, s_fid_list))
+
+        for fid in s_fid_list.split(';'):
+            if fid in FID_CODES:
+                code = self.dynamicCall("GetChejanData(int)", "9001")[1:]
+
+                data = self.dynamicCall("GetChejanData(int)", fid)
+
+                data = data.strip().lstrip('+').lstrip('-')
+
+                if data.isdigit():
+                    data = int(data)
+
+                item_name = FID_CODES[fid]
+                # 여기까지 1번 슬라이드
+
+                print("{}: {}".format(item_name, data))
+
+                if int(s_gubun) == 0:
+                    if code not in self.order.keys():
+                        self.order[code] = {}
+
+                    self.order[code].updata({item_name: data})
+                elif int(s_gubun) == 1:
+                    if code not in self.balance.keys():
+                        self.balance[code] = {}
+
+                    self.balance[code].update({item_name: data})
 
