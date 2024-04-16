@@ -54,7 +54,7 @@ class Kiwoom(QAxWidget):
         code_name = self.dynamicCall("GetMasterCodeName(QString)", code)
         return code_name
 
-    # 여기부터
+
     def _on_receive_tr_data(self,screen_no, rqname, trcode, record_name, next, unused1,
                             unused2, unused3, unused4):
         print("[Kiwoom] _on_receive_tr_data is called {} / {} / {}".format(screen_no, rqname, trcode))
@@ -89,3 +89,14 @@ class Kiwoom(QAxWidget):
 
         self.tr_event_loop.exec_()
         return self.tr_data
+
+    # 여기부터 따라하기
+    def send_order(self, rqname, screen_no, order_type, code, order_quantity,
+                   order_price, order_classification, origin_order_number=""):
+        order_result = self.dynamicCall(
+            "SendOrder(QString, QString, QString, int, QString, int, int, QString, QString",
+            [rqname, screen_no, self.account_number, order_type, code, order_quantity, order_price,
+             order_classification, origin_order_number])
+
+        return order_result
+
