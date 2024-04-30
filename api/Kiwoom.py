@@ -12,10 +12,11 @@ class Kiwoom(QAxWidget):
         self._comm_connect()
         self.account_number = self.get_account_number()
         self.tr_event_loop = QEventLoop()
-        # 여기 아래
+
         self.order = {}
         self.balance = {}
-
+        # 여기 아래
+        self.universe_realtime_transaction_info = {}
 
     def _make_Kiwoom_instance(self):
         self.setControl("KHOPENAPI.KHOpenAPICtrl.1")
@@ -23,9 +24,11 @@ class Kiwoom(QAxWidget):
     def _set_signal_slots(self):
         self.OnEventConnect.connect(self._login_slot)
         self.OnReceiveTrData.connect(self._on_receive_tr_data)
-        # 아래 둘 줄
         self.OnReceiveMsg.connect(self._on_receive_msg)
         self.OnReceiveChejanData.connect(self._on_chejan_slot)
+        self.OnReceiveRealData.connect(self._on_receive_real_data)
+
+
 
     def _login_slot(self, err_code):
         if err_code == 0:
@@ -174,9 +177,6 @@ class Kiwoom(QAxWidget):
 
 
 
-
-
-    # 여기부터. 현재 파일은 Kiwoom.py입니다.
     def get_deposit(self):
         self.dynamicCall("SetInputValue(QString, QString)", "계좌번호", self.account_number)
         self.dynamicCall("SetInputValue(QString, QString)", "비밀번호입력매체구분", "00")
@@ -253,4 +253,50 @@ class Kiwoom(QAxWidget):
         self.tr_event_loop.exec_()
         return self.tr_data
 
+    def set_real_reg(self, str_screen_no, str_code_list, str_fid_list, str_opt_type):
+        self.dynamicCall("SetRealReg(QString, QString, QString, QString)",
+                         str_screen_no, str_code_list, str_fid_list, str_opt_type)
 
+        time.sleep(0.5)
+
+    def _on_receive_real_data(self, s_code, real_type, real_data):
+        if real_type == "장시작시간":
+            pass    # 다음 시간에
+
+        elif real_type == "주식체결":
+            signed_at = self.dynamicCall("GetCommRealData(QString, int)", s_code, get_fid("체결시간"))
+
+            close = self.dynamicCall("GetCommRealData(QString, int)", s_code, get_fid("현재가"))
+            close = abs(int(close))
+
+            high = self.dynamicCall("GetCommRealData(QString, int)", s_code, get_fid("고가"))
+            high = abs(int(high))
+
+            open = self.dynamicCall("GetCommRealData(QString, int)", s_code, get_fid("시가"))
+            open = abs(int(open))
+            # 40분부터 아래 작성. // 못치는 사람은 39분에 사진 찍기.
+            low = self.self.dynamicCall("GetCommRealData(QString, int)", s_code, get_fid("저가"))
+            low = abs(int(low))
+
+            top_priority_ask = self.dynamicCall("GetCommRealData(QString, int)", s_code, get_fid("(최우선)매도호가"))
+            top_priority_ask = abs(int(top_priority_ask))
+
+            top_priority_bid = self.dynamicCall("GetCommRealData(QString, int)", s_code, get_fid("(최우선)매수호가"))
+            top_priority_bid = abs(int(top_priority_bid))
+
+            accum_volume = self.dynamicCall("GetCommRealData(QString, int)", s_code, get_fid("누적거래량"))
+            accum_volume = abs(int(accum_volume))
+
+            if s_code not in self.universe_realtime_transaction_info:
+                self.universe_realtime_transaction_info.update({s_code: {}})
+
+                self.universe_realtime_transaction_info[s_code].update({
+                    "체결시간": signed_at,
+                    "시가": open,
+                    "고가": high,
+                    "저가": low,
+                    "현재가": close,
+                    "(최우선)매도호가": top_priority_ask,
+                    "(최우선)매수호가": top_priority_bid,
+                    "누적거래량": accum_volume
+                })

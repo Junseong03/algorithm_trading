@@ -3,11 +3,7 @@ import sys
 
 app = QApplication(sys.argv)
 Kiwoom = Kiwoom()
-
-
-position = Kiwoom.get_balance()
-print(position)
+# 아래 한 줄.
+Kiwoom.set_real_reg("1000", "005930", get_fid("장운영구분"), "0")
 
 app.exec_()
-
-# 오류난 사람 지금 이야기하기..!
