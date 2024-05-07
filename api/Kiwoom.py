@@ -3,6 +3,9 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import time
 from util.const import *
+import pandas as pd
+import numpy as np
+
 
 class Kiwoom(QAxWidget):
     def __init__(self):
@@ -65,7 +68,28 @@ class Kiwoom(QAxWidget):
         code_name = self.dynamicCall("GetMasterCodeName(QString)", code)
         return code_name
 
+# 여기부터 def get_master_code_name(self, code): 아래
+    def get_price_data(self, code):
+        self.dynamicCall("SetInputValue(QString, QString)", "종목코드", code)
+        self.dynamicCall("SetInputValue(QString, QString)", "수정주가구분", "1")
+        self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081_req", "opt10081", 0, "0001")
+        self.tr_event_loop.exec_()
 
+        ohlcv = self.tr_data
+
+        while self.has_next_tr_data:
+            self.dynamicCall("SetInputValue(QString, QString)", "종목코드", code)
+            self.dynamicCall("SetInputValue(QString, QString)", "수정주가구분", "1")
+            self.dynamicCall("CommRqData(QString, QString, int, QString)", "opt10081_req", "opt10081", 2, "0001")
+            self.tr_event_loop.exec_()
+
+            for key, val in self.tr_data.items():
+                ohlcv[key] += val
+
+    df = pd.DataFrame(ohlcv, columns=['open', 'high', 'low', 'close', 'volume'], index=ohlcv['date'])
+    return df[::-1]
+
+# 여기까지
     def _on_receive_tr_data(self,screen_no, rqname, trcode, record_name, next, unused1,
                             unused2, unused3, unused4):
         print("[Kiwoom] _on_receive_tr_data is called {} / {} / {}".format(screen_no, rqname, trcode))
@@ -82,8 +106,8 @@ class Kiwoom(QAxWidget):
             self.tr_data = int(deposit)
             print(self.tr_data)
 
-        # 오늘 여기부터
-        elif rqname == "opt10081_req" :
+
+        elif rqname == "opt10081_req":
             ohlcv = {'date':[], 'open':[], 'high':[], 'low':[], 'close':[], 'volume':[]}
 
             for i in range(tr_data_cnt):
@@ -101,7 +125,7 @@ class Kiwoom(QAxWidget):
                 ohlcv['close'].append(int(close))
                 ohlcv['volume'].append(int(volume))
 
-            self.tr_data = ohlcv #받아온 데이터를 딕셔너리 형태로 저장
+            self.tr_data = ohlcv
 
 
 
