@@ -82,6 +82,30 @@ class Kiwoom(QAxWidget):
             self.tr_data = int(deposit)
             print(self.tr_data)
 
+        # 오늘 여기부터
+        elif rqname == "opt10081_req" :
+            ohlcv = {'date':[], 'open':[], 'high':[], 'low':[], 'close':[], 'volume':[]}
+
+            for i in range(tr_data_cnt):
+                date = self.dynamicCall("GetCommData(QString,QString, int, QString)", trcode, rqname, i, "일자")
+                open = self.dynamicCall("GetCommData(QString,QString, int, QString)", trcode, rqname, i, "시가")
+                high = self.dynamicCall("GetCommData(QString,QString, int, QString)", trcode, rqname, i, "고가")
+                low = self.dynamicCall("GetCommData(QString,QString, int, QString)", trcode, rqname, i, "저가")
+                close = self.dynamicCall("GetCommData(QString,QString, int, QString)", trcode, rqname, i, "현재가")
+                volume = self.dynamicCall("GetCommData(QString,QString, int, QString)", trcode, rqname, i, "거래량")
+
+                ohlcv['data'].append(date.strip())
+                ohlcv['open'].append(int(open))
+                ohlcv['high'].append(int(high))
+                ohlcv['low'].append(int(low))
+                ohlcv['close'].append(int(close))
+                ohlcv['volume'].append(int(volume))
+
+            self.tr_data = ohlcv #받아온 데이터를 딕셔너리 형태로 저장
+
+
+
+
         elif rqname == "opt10075_req":
             for i in range(tr_data_cnt):
                 code = self.dynamicCall("GetCommData(QString, QString, int, QString", trcode, rqname, i, "종목코드")
