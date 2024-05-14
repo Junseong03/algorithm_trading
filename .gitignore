@@ -1,3 +1,4 @@
 .idea/
 api/__pycache__/
 util/__pycache__/
+util/universe_price.db
