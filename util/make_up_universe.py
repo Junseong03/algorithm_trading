@@ -94,9 +94,6 @@ def crawler(code, page):
     # 한 페이지에서 얻은 정보를 모아 DataFrame로 만들어 반환
     df = pd.DataFrame(data=number_data, columns=header_data)
     return df
-
-
-# 여기부터
 def get_universe():
     df = execute_crawler()
 
@@ -112,7 +109,9 @@ def get_universe():
 
     df['1/PER'] = 1 / df["PER"]
 
-    df['RANK_ROE'] = df['1/PER'].rank(method='max', ascending=False)
+    df['RANK_ROE'] = df['ROE'].rank(method='max', ascending=False)
+
+    df['RANK_1/PER'] = df['1/PER'].rank(method='max', ascending=False)
 
     df['RANK_VALUE'] = (df['RANK_ROE'] + df['RANK_1/PER']) / 2
 
@@ -125,7 +124,6 @@ def get_universe():
     df.to_excel('universe.xlsx')
     return df['종목명'].tolist()
 
-# __name__ == "__main__" 바로 위에
 if __name__ == "__main__":
     print('Start!')
     execute_crawler()

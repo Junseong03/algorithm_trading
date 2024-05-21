@@ -1,12 +1,13 @@
 import sqlite3
-# conn = sqlite3.connect("universe_price.db", isolation_level=None)
-# cur = conn.cursor()
 
-with sqlite3.connect('universe_price.db') as conn:
-    cur = conn. cursor()
+def check_table_exist(db_name, table_name):
+    with sqlite3.connect('universe_price.db') as con:
+        cur = con.cursor()
+        sql = "SELECT name FROM sqlite_master WHERE type='table' and name=:table_name"
+        cur.execute(sql, {"table_name": table_name})
 
-sql = "delete from balance where will_clear_at=:will_clear_at"
-cur.execute(sql, {"will_clear_at": "next"})
+    if len(cur.fetchall()) > 0:
+        return True
 
-print(cur.rowcount)
-conn.commit()
+    else:
+        return False

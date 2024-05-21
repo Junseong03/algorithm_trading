@@ -18,7 +18,6 @@ class Kiwoom(QAxWidget):
 
         self.order = {}
         self.balance = {}
-        # 여기 아래
         self.universe_realtime_transaction_info = {}
 
     def _make_Kiwoom_instance(self):
@@ -86,8 +85,8 @@ class Kiwoom(QAxWidget):
             for key, val in self.tr_data.items():
                 ohlcv[key] += val
 
-    df = pd.DataFrame(ohlcv, columns=['open', 'high', 'low', 'close', 'volume'], index=ohlcv['date'])
-    return df[::-1]
+        df = pd.DataFrame(ohlcv, columns=['open', 'high', 'low', 'close', 'volume'], index=ohlcv['date'])
+        return df[::-1]
 
 # 여기까지
     def _on_receive_tr_data(self,screen_no, rqname, trcode, record_name, next, unused1,
